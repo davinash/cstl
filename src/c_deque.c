@@ -126,8 +126,10 @@ pop_back_c_deque (struct clib_deque* pDeq) {
 
     if ( pDeq->destruct_fn ) {
         void* elem;
-        if ( element_at_c_deque( pDeq, pDeq->tail - 1, &elem ) == CLIB_ERROR_SUCCESS ) 
+        if ( element_at_c_deque( pDeq, pDeq->tail - 1, &elem ) == CLIB_ERROR_SUCCESS ) {
             pDeq->destruct_fn(elem);
+	    free(elem);
+	}
     }
     delete_clib_object(pDeq->pElements[pDeq->tail - 1]);
     pDeq->tail--;
@@ -145,8 +147,10 @@ pop_front_c_deque(struct clib_deque* pDeq) {
 
     if ( pDeq->destruct_fn ) {
         void* elem;
-        if ( element_at_c_deque( pDeq, pDeq->head + 1, &elem ) == CLIB_ERROR_SUCCESS ) 
+        if ( element_at_c_deque( pDeq, pDeq->head + 1, &elem ) == CLIB_ERROR_SUCCESS ) {
             pDeq->destruct_fn(elem);
+	    free(elem);
+	}
     }
     delete_clib_object(pDeq->pElements[pDeq->head + 1]);
 
@@ -193,6 +197,7 @@ delete_c_deque ( struct clib_deque* pDeq ) {
             void* elem;
             if ( element_at_c_deque( pDeq, i, &elem ) == CLIB_ERROR_SUCCESS ) {
                 pDeq->destruct_fn(elem);
+		free(elem);
             }
         }
     }
@@ -228,15 +233,17 @@ replace_value_c_deque(struct clib_iterator *pIterator, void* elem, size_t elem_s
 	struct clib_deque*  pDeq = (struct clib_deque*)pIterator->pContainer;	
 	if ( pDeq->destruct_fn ) {
 		void* old_element;
-		get_raw_clib_object ( pIterator->pCurrentElement, &old_element );
-		pDeq->destruct_fn(old_element);
+		if (get_raw_clib_object ( pIterator->pCurrentElement, &old_element ) == CLIB_ERROR_SUCCESS) {
+			pDeq->destruct_fn(old_element);
+			free(old_element);
+		}
     }
 	replace_raw_clib_object( pIterator->pCurrentElement, elem, elem_size);
 }
 
 struct clib_iterator* 
 new_iterator_c_deque(struct clib_deque* pDeq) {
-	struct clib_iterator *itr = ( struct clib_iterator*) malloc ( sizeof ( struct clib_iterator));
+	struct clib_iterator *itr = ( struct clib_iterator*) calloc (1, sizeof ( struct clib_iterator));
 	itr->get_next  = get_next_c_deque;
 	itr->get_value = get_value_c_deque;
 	itr->replace_value = replace_value_c_deque;
