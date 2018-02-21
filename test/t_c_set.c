@@ -30,13 +30,17 @@
 
 static void 
 delete_e ( void* ptr ) {
-    if ( ptr ) 
-	free ( ptr );
+    if (ptr) {
+        char *str = *((char **)ptr);
+        if (str) {
+            free(str);
+        }
+    }
 }
 static int
 compare_e ( void* left, void* right ) {
-    char *l = (char*)left;
-    char *r = (char*)right;
+    char *l = *((char**)left);
+    char *r = *((char**)right);
     return strcmp ( (const char *)l, (const char *) r );
 }
 static int 
@@ -78,7 +82,7 @@ test_with_iterators() {
 		free ( value );
 		pElement = myItr->get_next(myItr);
 	}
-	delete_iterator_c_array( myItr );
+	delete_iterator_c_set( myItr );
 	delete_c_set( pSet);
 }
 
@@ -131,12 +135,11 @@ test_c_set(){
         
         for ( index = 0; index < size; index++ ){
             char *temp = clib_strdup ( ti[index].string );
-            insert_c_set ( pSet, temp, strlen(temp) + 1 );
-            free ( temp );
+            insert_c_set ( pSet, &temp, sizeof(char *) );
         }
         for ( index = 0; index < size; index++ ){
             v = ti[index].string;
-            assert ( clib_true == exists_c_set ( pSet, v));
+            assert ( clib_true == exists_c_set ( pSet, &v));
         }
         delete_c_set(pSet);
     }
