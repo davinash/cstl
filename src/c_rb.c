@@ -83,7 +83,7 @@ __right_rotate(struct clib_rb* pTree, struct clib_rb_node* x) {
 struct clib_rb*
 new_c_rb(clib_compare fn_c,clib_destroy fn_ed, clib_destroy fn_vd ){
 
-    struct clib_rb* pTree = (struct clib_rb*)malloc(sizeof(struct clib_rb));
+    struct clib_rb* pTree = (struct clib_rb*)calloc(1, sizeof(struct clib_rb));
     if ( pTree == (struct clib_rb*)0 )
         return (struct clib_rb*)0;
 
@@ -167,7 +167,7 @@ insert_c_rb(struct clib_rb* pTree, void* k, size_t key_size, void* v, size_t val
 	struct clib_rb_node* y;
 	struct clib_rb_node* z;
 
-    x = (struct clib_rb_node*)malloc (sizeof(struct clib_rb_node));
+    x = (struct clib_rb_node*)calloc (1, sizeof(struct clib_rb_node));
     if ( x == (struct clib_rb_node*)0  ) 
         return CLIB_ERROR_MEMORY;
 
@@ -362,6 +362,7 @@ __delete_c_rb_node (struct clib_rb* pTree, struct clib_rb_node* x ) {
     if ( pTree->destruct_k_fn ) {
         get_raw_clib_object ( x->key, &key );
         pTree->destruct_k_fn ( key );
+	free(key);
     }
     delete_clib_object( x->key );
 
@@ -369,6 +370,7 @@ __delete_c_rb_node (struct clib_rb* pTree, struct clib_rb_node* x ) {
         if ( pTree->destruct_v_fn ) {
             get_raw_clib_object ( x->value, &value);
             pTree->destruct_v_fn ( value );
+	    free(value);
         }
         delete_clib_object( x->value );
     }
