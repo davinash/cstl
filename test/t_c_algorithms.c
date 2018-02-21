@@ -8,10 +8,21 @@ void print_integers( void *ptr ) {
 		printf ( "%d\n", *(int*)ptr);
 	}
 }
+
+void print_integers_ptr(void *ptr) {
+    if (ptr) {
+        printf("%d\n", **((int**)ptr));
+    }
+}
+
 static void 
 free_element ( void* ptr ) {
-    if ( ptr )
-        free ( ptr);
+    if (ptr) {
+        void *p = *((void **)ptr);
+        if (p) {
+            free(p);
+        }
+    }
 }
 
 static int
@@ -32,8 +43,8 @@ compare_integers ( void* left, void* right ) {
 }
 static int 
 compare_integers_ptr ( void* left, void* right ) {
-    int *l = (int*) left;
-    int *r = (int*) right;
+    int *l = *((int**) left);
+    int *r = *((int**) right);
     return *l == *r ;
 }
 
@@ -117,13 +128,12 @@ create_map () {
 }
 static struct clib_slist*
 create_slist() {
-	struct clib_slist* pList = new_c_slist(free_element,compare_integers_ptr);
+	struct clib_slist* pList = new_c_slist(free_element, compare_integers_ptr);
     int i = 0;
     for ( i = 0; i <= 10; i++ ) { 
         int *v = ( int *) malloc ( sizeof ( int ));
-        memcpy ( v, &i, sizeof ( int ));
-        push_back_c_slist ( pList, v , sizeof(v));
-        free ( v );
+        *v = i; // memcpy ( v, &i, sizeof ( int ));
+        push_back_c_slist ( pList, &v , sizeof(int *));
     }
 	return pList;
 }
@@ -172,7 +182,7 @@ t_clib_for_each() {
 	printf ( "Performing for_each for slist\n");
 	pSlist = create_slist();
 	pSlistIterator = new_iterator_c_slist ( pSlist );
-	clib_for_each ( pSlistIterator, print_integers );
+	clib_for_each ( pSlistIterator, print_integers_ptr);
 	delete_c_slist( pSlist );
 	delete_iterator_c_slist ( pSlistIterator );
 }

@@ -68,15 +68,15 @@ push_back_c_slist( struct clib_slist* pSlist, void* elem, size_t elem_size){
 }
 static void 
 __remove_c_list ( struct clib_slist* pSlist, struct clib_slist_node* pSlistNode ) {
-    void* elem;
-    get_raw_clib_object(pSlistNode->elem, &elem);
     if ( pSlist->destruct_fn) {             
-        (pSlist->destruct_fn)(elem);
-        delete_clib_object ( pSlistNode->elem );
-    }else {
-        free ( elem );
-        delete_clib_object ( pSlistNode->elem );
-    }        
+        void* elem;
+        if (get_raw_clib_object(pSlistNode->elem, &elem) == CLIB_ERROR_SUCCESS) {
+            pSlist->destruct_fn(elem);
+            free(elem);
+        }
+    }
+    delete_clib_object ( pSlistNode->elem );
+
     free ( pSlistNode);
 }
 void           
@@ -200,9 +200,10 @@ replace_value_c_slist(struct clib_iterator *pIterator, void* elem, size_t elem_s
 	
 	if ( pSlist->destruct_fn ) {
 		void* old_element;
-		
-		get_raw_clib_object (pObj, &old_element );
-		pSlist->destruct_fn(old_element);
+        if (get_raw_clib_object(pObj, &old_element) == CLIB_ERROR_SUCCESS) {
+            pSlist->destruct_fn(old_element);
+            free(old_element);
+        }
     }
 	replace_raw_clib_object( pObj, elem, elem_size);
 }

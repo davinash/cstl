@@ -238,7 +238,7 @@ test_with_strings() {
         free ( p_rv );
     }	
     rc = front_c_array ( myArray, &p_rv );
-    rv = (char*)p_rv;
+    rv = *((char**)p_rv);
     assert ( strcmp( rv, input_array[0]) == 0);
     free ( p_rv );
 

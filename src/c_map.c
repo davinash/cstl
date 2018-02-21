@@ -71,12 +71,20 @@ remove_c_map ( struct clib_map* pMap, void* key) {
     node = remove_c_rb ( pMap->root, key );
     if ( node != (struct clib_rb_node*)0  ) {
         void* removed_node;
-        get_raw_clib_object ( node->key, &removed_node );
-        free ( removed_node);
+        if (pMap->root->destruct_k_fn) {
+            if (get_raw_clib_object(node->key, &removed_node) == CLIB_ERROR_SUCCESS) {
+                pMap->root->destruct_k_fn(removed_node);
+                free(removed_node);
+            }
+        }
         delete_clib_object ( node->key );
 
-        get_raw_clib_object ( node->value, &removed_node );
-        free ( removed_node);
+        if (pMap->root->destruct_v_fn) {
+            if (get_raw_clib_object(node->value, &removed_node) == CLIB_ERROR_SUCCESS) {
+                pMap->root->destruct_v_fn(removed_node);
+                free(removed_node);
+            }
+        }
         delete_clib_object ( node->value);
 
         free ( node );
@@ -140,8 +148,10 @@ replace_value_c_map(struct clib_iterator *pIterator, void* elem, size_t elem_siz
 	
 	if ( pMap->root->destruct_v_fn ) {
 		void* old_element;
-		get_raw_clib_object ( pIterator->pCurrentElement, &old_element );
-		pMap->root->destruct_v_fn(old_element);
+        if (get_raw_clib_object(pIterator->pCurrentElement, &old_element) == CLIB_ERROR_SUCCESS) {
+            pMap->root->destruct_v_fn(old_element);
+            free(old_element);
+        }
     }
 	replace_raw_clib_object(((struct clib_rb_node*)pIterator->pCurrentElement)->value, elem, elem_size);
 }

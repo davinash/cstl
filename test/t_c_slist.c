@@ -30,8 +30,12 @@
 
 static void 
 free_element ( void* ptr ) {
-    if ( ptr )
-        free ( ptr);
+    if (ptr) {
+        void *p = *((void **)ptr);
+        if (p) {
+            free(p);
+        }
+    }
 }
 
 void
@@ -40,20 +44,19 @@ add_elements_to_list( struct clib_slist* ll, int x, int y ) {
     for ( i = x; i <= y; i++ ) { 
         int *v = ( int *) malloc ( sizeof ( int ));
         memcpy ( v, &i, sizeof ( int ));
-        push_back_c_slist ( ll, v , sizeof(v));
-        free ( v );
+        push_back_c_slist ( ll, &v , sizeof(int *));
     }
 }
 void
 print_e ( void* ptr ) {
     if ( ptr )
-        printf ( "%d\n", *(int*)ptr);
+        printf ( "%d\n", **((int**)ptr));
 }
 
 static int 
 compare_element ( void* left, void* right ) {
-    int *l = (int*) left;
-    int *r = (int*) right;
+    int *l = *((int**) left);
+    int *r = *((int**) right);
     return *l == *r ;
 }
 static void 
@@ -65,7 +68,7 @@ print_using_iterators(struct clib_slist* pList) {
 	pElement  = myItr->get_next(myItr);
 	while ( pElement ) {
 		void* value = myItr->get_value(pElement);
-		printf ( "%d\n", *(int*)value);
+		printf ( "%d\n", **((int**)value));
 		free ( value );
 		pElement = myItr->get_next(myItr);
 	}
@@ -81,9 +84,12 @@ replace_values_using_iterators(struct clib_slist* pList) {
 	pElement  = myItr->get_next(myItr);
 	while ( pElement ) {
 		void* old_value = myItr->get_value(pElement);
-		int new_value = *(int*)old_value;
+		int new_value = **((int**)old_value);
 		new_value = new_value * 2;
-		myItr->replace_value( myItr, &new_value, sizeof(new_value));
+
+        int *v = (int *)malloc(sizeof(int));
+        *v = new_value;
+		myItr->replace_value( myItr, &v, sizeof(int *));
 		free ( old_value );
 
 		pElement = myItr->get_next(myItr);
@@ -114,8 +120,7 @@ test_c_slist() {
     i = 55;
     v = ( int *) malloc ( sizeof ( int ));
     memcpy ( v, &i, sizeof ( int ));
-    insert_c_slist(list,5, v,sizeof(v));
-    free ( v );
+    insert_c_slist(list,5, &v,sizeof(int *));
     for_each_c_slist(list, print_e);
 
     remove_c_slist(list,5);
@@ -130,34 +135,34 @@ test_c_slist() {
     i = 1;
     v = ( int *) malloc ( sizeof ( int ));
     memcpy ( v, &i, sizeof ( int ));
-    insert_c_slist(list,1,v,sizeof(v));
-    free ( v );
+    insert_c_slist(list,1, &v, sizeof(int *));
     for_each_c_slist(list, print_e);
 
     i = 11;
     v = ( int *) malloc ( sizeof ( int ));
     memcpy ( v, &i, sizeof ( int ));
-    insert_c_slist(list,11,v,sizeof(v));
-    free ( v );
+    insert_c_slist(list,11,&v,sizeof(int *));
     for_each_c_slist(list, print_e);
 
     i = 12;
     v = ( int *) malloc ( sizeof ( int ));
     memcpy ( v, &i, sizeof ( int ));
-    insert_c_slist(list,200,v,sizeof(v));
-    free ( v );
+    insert_c_slist(list,200,&v,sizeof(int *));
     for_each_c_slist(list, print_e);
 
     remove_c_slist(list,list->size);
     for_each_c_slist(list, print_e);
 
-    i = 10;
-    if ( clib_true == find_c_slist ( list, &i, &outValue)) {
-        assert ( i == *(int*)outValue );
+    int *tmp = (int *)malloc(sizeof(int));
+    *tmp = 10;
+    if ( clib_true == find_c_slist ( list, &tmp, &outValue)) {
+        assert ( *tmp == **((int**)outValue) );
         free ( outValue );
     }
-    i = 100;
-    assert ( clib_false == find_c_slist ( list, &i, &outValue));
+
+    *tmp = 100;
+    assert ( clib_false == find_c_slist ( list, &tmp, &outValue));
+    free(tmp);
 
     delete_c_slist ( list );
 
