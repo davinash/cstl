@@ -174,6 +174,7 @@ remove_from_c_array ( struct clib_array* pArray, int index) {
         void* elem;
         if ( CLIB_ERROR_SUCCESS == element_at_c_array ( pArray, index , &elem ) ) {
             pArray->destruct_fn(elem);
+	    free(elem);
         }
     }
     delete_clib_object ( pArray->pElements[index]);
@@ -197,8 +198,10 @@ delete_c_array( struct clib_array* pArray) {
     if ( pArray->destruct_fn ) {
         for ( i = 0; i < pArray->no_of_elements; i++) {
             void* elem;
-            if ( CLIB_ERROR_SUCCESS == element_at_c_array ( pArray, i , &elem ) )
+            if ( CLIB_ERROR_SUCCESS == element_at_c_array ( pArray, i , &elem ) ) {
                 pArray->destruct_fn(elem);
+		free(elem);
+	    }
         }
     }
 
@@ -234,15 +237,17 @@ replace_value_c_array(struct clib_iterator *pIterator, void* elem, size_t elem_s
 	
 	if ( pArray->destruct_fn ) {
 		void* old_element;
-		get_raw_clib_object ( pIterator->pCurrentElement, &old_element );
-		pArray->destruct_fn(old_element);
+		if (CLIB_ERROR_SUCCESS == get_raw_clib_object(pIterator->pCurrentElement, &old_element)) {
+			pArray->destruct_fn(old_element);
+			free(old_element);
+		}
     }
 	replace_raw_clib_object( pIterator->pCurrentElement, elem, elem_size);
 }
 
 struct clib_iterator* 
 new_iterator_c_array(struct clib_array* pArray) {
-	struct clib_iterator *itr = ( struct clib_iterator*) malloc ( sizeof ( struct clib_iterator));
+	struct clib_iterator *itr = ( struct clib_iterator*) calloc (1, sizeof ( struct clib_iterator));
 	itr->get_next   = get_next_c_array;
 	itr->get_value  = get_value_c_array;
 	itr->replace_value = replace_value_c_array;
