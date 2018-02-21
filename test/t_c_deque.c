@@ -34,10 +34,22 @@ compare_e ( void* left, void* right ) {
     int *r = (int*) right;
     return *l == *r ;
 }
+
+static int
+compare_e_ptr(void* left, void* right) {
+    int *l = *((int**)left);
+    int *r = *((int**)right);
+    return *l == *r;
+}
+
 static void 
 free_e ( void* ptr ) {
-    if ( ptr )
-    free ( ptr);
+    if (ptr) {
+        void *p = *((void **)ptr);
+        if (p) {
+            free(p);
+        }
+    }
 }
 
 static void 
@@ -135,17 +147,16 @@ test_c_deque() {
     }
     delete_c_deque(myDeq);
 
-    myDeq = new_c_deque ( 10, compare_e, free_e); 
+    myDeq = new_c_deque ( 10, compare_e_ptr, free_e); 
     for ( i = 0; i <= limit; i ++ ) { 
         int *v = (int*)malloc(sizeof(int ));
         memcpy ( v, &i, sizeof ( int ));
-        push_back_c_deque ( myDeq, v , sizeof(int*));
-        free ( v );
+        push_back_c_deque ( myDeq, &v , sizeof(int*));
     }   
     for ( i = myDeq->head + 1; i < myDeq->tail; i++ ){
-        void* elem;
-        if ( element_at_c_deque( myDeq, i, &elem ) == CLIB_ERROR_SUCCESS ) {
-                assert ( *(int*)elem == j++ );
+        int** elem;
+        if ( element_at_c_deque( myDeq, i, (void *)&elem ) == CLIB_ERROR_SUCCESS ) {
+                assert ( **elem == j++ );
                 free ( elem );
         }
     }
