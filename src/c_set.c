@@ -68,8 +68,16 @@ remove_c_set ( struct clib_set* pSet, void* key) {
 
     node = remove_c_rb ( pSet->root, key );
     if ( node != (struct clib_rb_node*)0  ) {
-        /*free ( node->raw_data.key);
-        free ( node );*/
+        if (pSet->root->destruct_k_fn) {
+            void* key = (void*)0;
+            if (CLIB_ERROR_SUCCESS == get_raw_clib_object(node->key, &key)) {
+                pSet->root->destruct_k_fn(key);
+                free(key);
+            }
+        }
+        delete_clib_object(node->key);
+
+        free(node);
     }
     return rc;
 }
@@ -126,7 +134,7 @@ get_value_c_set( void* pObject) {
 
 struct clib_iterator* 
 new_iterator_c_set(struct clib_set* pSet) {
-	struct clib_iterator *itr = ( struct clib_iterator*) malloc ( sizeof ( struct clib_iterator));
+	struct clib_iterator *itr = ( struct clib_iterator*) calloc (1, sizeof ( struct clib_iterator));
 	itr->get_next     = get_next_c_set;
 	itr->get_value    = get_value_c_set;
 	itr->pContainer   = pSet;
