@@ -140,7 +140,7 @@ replace_value_c_map(struct clib_iterator *pIterator, void* elem, size_t elem_siz
 	
 	if ( pMap->root->destruct_v_fn ) {
 		void* old_element;
-		get_raw_clib_object ( pIterator->pCurrentElement, &old_element );
+		get_raw_clib_object (((struct clib_rb_node*)pIterator->pCurrentElement)->value, &old_element );
 		pMap->root->destruct_v_fn(old_element);
     }
 	replace_raw_clib_object(((struct clib_rb_node*)pIterator->pCurrentElement)->value, elem, elem_size);
