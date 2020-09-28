@@ -90,7 +90,7 @@ element_at_c_array (struct clib_array* pArray, int index, void** elem) {
     if ( ! pArray )
         return CLIB_ARRAY_NOT_INITIALIZED;
 
-    if ( index < 0 || index > pArray->no_max_elements )
+    if ( index < 0 || index >= pArray->no_max_elements )
         return CLIB_ARRAY_INDEX_OUT_OF_BOUND;
 
     get_raw_clib_object ( pArray->pElements[index], elem );
@@ -147,7 +147,7 @@ insert_at_c_array ( struct clib_array* pArray, int index, void* elem, size_t ele
     if ( ! pArray )
         return CLIB_ARRAY_NOT_INITIALIZED;
 
-    if ( index < 0 || index > pArray->no_max_elements )
+    if ( index < 0 || index >= pArray->no_of_elements )
         return CLIB_ARRAY_INDEX_OUT_OF_BOUND;
 
     array_check_and_grow ( pArray);
@@ -167,7 +167,7 @@ remove_from_c_array ( struct clib_array* pArray, int index) {
 
     if ( ! pArray )
         return rc;
-    if ( index < 0 || index > pArray->no_max_elements )
+    if ( index < 0 || index >= pArray->no_max_elements )
         return CLIB_ARRAY_INDEX_OUT_OF_BOUND;
 
     if ( pArray->destruct_fn ) {
@@ -180,7 +180,7 @@ remove_from_c_array ( struct clib_array* pArray, int index) {
 
     memmove ( &(pArray->pElements[index]),
               &pArray->pElements[index + 1],
-              (pArray->no_of_elements - index ) * sizeof(struct clib_object*));
+              (pArray->no_of_elements - index - 1 ) * sizeof(struct clib_object*));
     pArray->no_of_elements--;
 
     return rc;
