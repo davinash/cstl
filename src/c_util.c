@@ -62,6 +62,7 @@ void
 replace_raw_clib_object(struct clib_object* current_object,void* elem, size_t elem_size) {
 	free (current_object->raw_data);
 	current_object->raw_data = (void*)malloc(elem_size);
+    current_object->size = elem_size;
 	memcpy ( current_object->raw_data, elem, elem_size);
 }
 
