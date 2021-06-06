@@ -167,7 +167,7 @@ size_c_deque( struct clib_deque* pDeq ) {
 	if ( pDeq == (struct clib_deque*)0 )
 		return clib_true;
 
-    return pDeq->no_of_elements - 1;
+    return pDeq->no_of_elements;
 }
 clib_error 
 element_at_c_deque (struct clib_deque* pDeq, int index, void**elem) {
